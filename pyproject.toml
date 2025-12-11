@@ -1,0 +1,11 @@
+[project]
+name = "ecobalyse-runner"
+version = "0.1.0"
+description = "Accélerer la mise en place de l'affichage environnemental ; automatisation de la mise à jour des données"
+readme = "README.md"
+requires-python = "==3.12.*"
+dependencies = [
+    "dynaconf>=3.2.12",
+    "litestar[standard]>=2.18.0",
+    "sniffio>=1.3.1",
+]
