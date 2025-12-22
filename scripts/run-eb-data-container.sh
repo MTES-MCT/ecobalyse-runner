@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
 
-EB_DATA_REPOSITORY="https://github.com/MTES-MCT/ecobalyse-data.git"
+COMMIT_HASH="$*"
 
+EB_DATA_REPOSITORY="https://github.com/MTES-MCT/ecobalyse-data.git"
 set -eo pipefail
 
-echo "Running container for commit $*"
+echo "Running container for commit $COMMIT_HASH"
 
 TMP_DIR=$(dirname "$(mktemp --dry-run)")
-WORK_DIR="$TMP_DIR/eb-runner/$*"
+WORK_DIR="$TMP_DIR/eb-runner/$COMMIT_HASH"
 
 echo "Cloning ecobalyse directory to $WORK_DIR"
 
@@ -17,19 +18,32 @@ echo "Cloning ecobalyse directory to $WORK_DIR"
 #
 # git clone "$EB_DATA_REPOSITORY" --revision "$@" --depth 1 "$WORK_DIR" --config advice.detachedHead=false
 #
-# So for now, just clone everything then checkout
+# So for now, just clone everything then detach the commit
 git clone "$EB_DATA_REPOSITORY" "$WORK_DIR"
 cd "$WORK_DIR"
-git checkout "$@"
+git switch --detach "$COMMIT_HASH"
 
 
-export BRIGHTWAY2_DIR=/cache/brightway
-export EB_OUTPUT_DIR=/cache/output
-export EB_DB_CACHE_DIR=/cache/db-cache
+# TODO: check that all the necessary envvars are set
 
-mkdir -p "$BRIGHTWAY2_DIR" "$EB_OUTPUT_DIR" "$EB_DB_CACHE_DIR"
+echo "BRIGHTWAY2_DIR is $BRIGHTWAY2_DIR"
+echo "EB_DB_CACHE_DIR is $EB_DB_CACHE_DIR"
 
+# For now, generate the files in a subfolder of the usual EB_OUTPUT_DIR.
+# It’s temporary until we define the whole workflow.
+export EB_OUTPUT_DIR="$EB_OUTPUT_DIR/$COMMIT_HASH"
+echo "EB_OUTPUT_DIR is $EB_OUTPUT_DIR"
 
-docker compose run --build bw just
+mkdir -p "/cache/output/$COMMIT_HASH"
+mkdir -p "/cache/output/$COMMIT_HASH/components"
+mkdir -p "/cache/output/$COMMIT_HASH/food"
+mkdir -p "/cache/output/$COMMIT_HASH/object"
+mkdir -p "/cache/output/$COMMIT_HASH/textile"
+mkdir -p "/cache/output/$COMMIT_HASH/veli"
+
+docker compose run --build bw just import-all export-all
+
+# TODO: generate an appropriate error message if there’s a diff
+diff "/cache/output/$COMMIT_HASH/processes.json" "/cache/output/processes.json"
 
 echo "done"

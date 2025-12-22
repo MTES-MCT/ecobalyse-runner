@@ -1,5 +1,4 @@
 import pathlib
-from textwrap import dedent
 from typing import Annotated
 
 from celery.result import AsyncResult
@@ -47,20 +46,11 @@ async def check_commit(
         case "STARTED":
             return f"Task {git_hash} running"
         case "SUCCESS":
-            result = task.get()
-            r = dedent(f"""\
-            ✅ Task {git_hash} successful.
-
-            {result}
-            """)
-            return r
+            return f"✅ Task {git_hash} successful.\n\n" + task.result
 
         case "FAILURE":
-            return dedent(f"""\
-            🛑 Task {git_hash} failed.
+            return f"🛑 Task {git_hash} failed.\n\n" + str(task.result)
 
-            {task.result}
-            """)
     return f"Unknown status {task.state}"
 
 

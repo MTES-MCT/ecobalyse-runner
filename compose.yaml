@@ -3,9 +3,11 @@ services:
     # Backend and broker for Celery
     image: redis:8.4-bookworm
     command: redis-server
+    user: redis
 
   worker:
     # The Celery worker(s)
+    scale: 2 # Let’s start with 2 workers…
     build:
       context: .
       target: worker
@@ -16,6 +18,17 @@ services:
       # Running the inside container as a sibling of the current one, instead of a
       # child. See https://jpetazzo.github.io/2015/09/03/do-not-use-docker-in-docker-for-ci/
       - /var/run/docker.sock:/var/run/docker.sock
+      - $EB_OUTPUT_DIR:/cache/output
+    environment:
+      - BRIGHTWAY2_DIR
+      - EB_OUTPUT_DIR
+      - EB_DB_CACHE_DIR
+      - EB_S3_ENDPOINT
+      - EB_S3_REGION
+      - EB_S3_ACCESS_KEY_ID
+      - EB_S3_SECRET_ACCESS_KEY
+      - EB_S3_BUCKET
+      - EB_S3_DB_PREFIX
 
   monitor:
     # Celery web interface, only available with the debug profile
