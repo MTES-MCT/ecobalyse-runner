@@ -18,6 +18,8 @@ services:
       # Running the inside container as a sibling of the current one, instead of a
       # child. See https://jpetazzo.github.io/2015/09/03/do-not-use-docker-in-docker-for-ci/
       - /var/run/docker.sock:/var/run/docker.sock
+      - $BRIGHTWAY2_DIR:/cache/brightway
+      - $EB_DB_CACHE_DIR:/cache/db-cache
       - $EB_OUTPUT_DIR:/cache/output
     environment:
       - BRIGHTWAY2_DIR

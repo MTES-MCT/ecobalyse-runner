@@ -1,5 +1,7 @@
 # https://github.com/casey/just
 
+set dotenv-load := true
+
 uv := "PYTHONPATH=. uv"
 
 ################################################################################
@@ -32,3 +34,27 @@ fix-all: fix-python
 
 test:
   {{uv}} run pytest
+
+
+################################################################################
+### Running
+
+run: build
+  docker compose up
+
+build:
+  # We want
+  # - the container user (`eb`) to have an UID with read/write access to the
+  #   volumes. By default, we take the host user id.
+  # - to add the host `docker` group id to the `eb` user so that they are
+  #   allowed to launch the sibling container.
+
+  docker compose build \
+    --build-arg DOCKER_GID="${DOCKER_GID:-`getent group docker|cut -d: -f3`}" \
+    --build-arg USER_ID="${CONTAINER_USER_ID:-`id -u`}"
+
+stop:
+  docker compose down
+
+clean:
+  docker compose down --remove-orphans --rmi all
