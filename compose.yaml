@@ -7,7 +7,7 @@ services:
 
   worker:
     # The Celery worker(s)
-    scale: 2 # Let’s start with 2 workers…
+    scale: ${NUM_WORKERS:-1} # 1 by default
     build:
       context: .
       target: worker

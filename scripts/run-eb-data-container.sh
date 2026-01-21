@@ -24,8 +24,6 @@ cd "$WORK_DIR"
 git switch --detach "$COMMIT_HASH"
 
 
-# TODO: check that all the necessary envvars are set
-
 echo "BRIGHTWAY2_DIR is $BRIGHTWAY2_DIR"
 echo "EB_DB_CACHE_DIR is $EB_DB_CACHE_DIR"
 
@@ -34,12 +32,7 @@ echo "EB_DB_CACHE_DIR is $EB_DB_CACHE_DIR"
 export EB_OUTPUT_DIR="$EB_OUTPUT_DIR/$COMMIT_HASH"
 echo "EB_OUTPUT_DIR is $EB_OUTPUT_DIR"
 
-mkdir -p "/cache/output/$COMMIT_HASH"
-mkdir -p "/cache/output/$COMMIT_HASH/components"
-mkdir -p "/cache/output/$COMMIT_HASH/food"
-mkdir -p "/cache/output/$COMMIT_HASH/object"
-mkdir -p "/cache/output/$COMMIT_HASH/textile"
-mkdir -p "/cache/output/$COMMIT_HASH/veli"
+mkdir -p "/cache/output/$COMMIT_HASH/{components,food,object,textile,veli}"
 
 docker compose run --build bw just import-all export-all
 

@@ -1,6 +1,7 @@
 import pathlib
 from typing import Annotated
 
+from celery import states
 from celery.result import AsyncResult
 from litestar import Litestar, get
 from litestar.params import Parameter
@@ -13,7 +14,7 @@ ROOT_PATH = pathlib.Path(__file__).parent
 
 @get("/")
 async def index() -> str:
-    return "Hello, world!"
+    return "Usage: /check/<git_hash>"
 
 
 @get(path="/favicon.ico")
@@ -39,16 +40,16 @@ async def check_commit(
     task = AsyncResult(git_hash)
     print("Task state", task.state)
     match task.state:
-        case "PENDING":
+        case states.PENDING:
             # Task unknown, let’s launch it
             run_bash_script.apply_async([git_hash], task_id=git_hash)
             return "Launching"
-        case "STARTED":
+        case states.STARTED:
             return f"Task {git_hash} running"
-        case "SUCCESS":
+        case states.SUCCESS:
             return f"✅ Task {git_hash} successful.\n\n" + task.result
 
-        case "FAILURE":
+        case states.FAILURE:
             return f"🛑 Task {git_hash} failed.\n\n" + str(task.result)
 
     return f"Unknown status {task.state}"

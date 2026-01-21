@@ -14,6 +14,7 @@ wheels/
 # Local environment files
 .envrc
 .env*
+!.env.sample
 
 # IDE files
 .vscode/

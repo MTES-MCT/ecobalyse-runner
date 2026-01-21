@@ -1,15 +1,19 @@
 
 FROM ghcr.io/astral-sh/uv:trixie-slim AS uv
 
+# Check parameters
 ARG USER_ID
-RUN test -n "$USER_ID" || (echo "USER_ID not set" && false)
+RUN test -n "$USER_ID" || (echo "the USER_ID parameter is not set; run with '--build-arg USER_ID=<value>'" && false)
 
-RUN useradd -u "$USER_ID" -m -s /bin/bash -d /app eb
-
+# Update the system
 RUN DEBIAN_FRONTEND="noninteractive" && \
   apt-get update -y && \
   apt-get upgrade -y
 
+# Create a non root user
+RUN useradd -u "$USER_ID" -m -s /bin/bash -d /app eb
+
+# Install common Python packages in /app
 USER eb
 WORKDIR /app
 
@@ -24,7 +28,7 @@ RUN DEBIAN_FRONTEND="noninteractive" && \
   apt-get install -y git docker-cli docker-buildx docker-compose
 
 ARG DOCKER_GID
-RUN test -n "$DOCKER_GID" || (echo "DOCKER_GID  not set" && false)
+RUN test -n "$DOCKER_GID" || (echo "the DOCKER_GID parameter is not set; run with '--build-arg DOCKER_GID=<value>'" && false)
 
 RUN addgroup --gid ${DOCKER_GID} docker
 RUN usermod -aG docker eb
