@@ -1,0 +1,63 @@
+services:
+  redis:
+    # Backend and broker for Celery
+    image: redis:8.4-bookworm
+    command: redis-server
+    user: redis
+
+  worker:
+    # The Celery worker(s)
+    scale: ${NUM_WORKERS:-1} # 1 by default
+    build:
+      context: .
+      target: worker
+    command: uv run celery -A tasks worker
+    depends_on:
+      - redis
+    volumes:
+      # Running the inside container as a sibling of the current one, instead of a
+      # child. See https://jpetazzo.github.io/2015/09/03/do-not-use-docker-in-docker-for-ci/
+      - /var/run/docker.sock:/var/run/docker.sock
+      - $BRIGHTWAY2_DIR:/cache/brightway
+      - $EB_DB_CACHE_DIR:/cache/db-cache
+      - $EB_OUTPUT_DIR:/cache/output
+    environment:
+      - BRIGHTWAY2_DIR
+      - EB_OUTPUT_DIR
+      - EB_DB_CACHE_DIR
+      - EB_S3_ENDPOINT
+      - EB_S3_REGION
+      - EB_S3_ACCESS_KEY_ID
+      - EB_S3_SECRET_ACCESS_KEY
+      - EB_S3_BUCKET
+      - EB_S3_DB_PREFIX
+
+  monitor:
+    # Celery web interface, only available with the debug profile
+    # i.e. `docker compose --profile debug up`
+    # It will be available at http://localhost:9000/
+    ports:
+      - "9000:9000"
+    build:
+      context: .
+      target: monitor
+    command: uv run celery -A tasks flower --port=9000
+    depends_on:
+      - redis
+      - worker
+    # https://docs.docker.com/reference/compose-file/services/#profiles
+    profiles:
+      - debug
+
+  web:
+    # The Litestar API
+    # It will be available at http://localhost:8000/
+    ports:
+      - "8000:8000"
+    build:
+      context: .
+      target: web
+    command: uv run litestar run --debug --host 0.0.0.0 --port 8000
+    depends_on:
+      - redis
+      - worker
