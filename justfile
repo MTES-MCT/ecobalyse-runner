@@ -28,9 +28,9 @@ fix-python +target=".": _uv_sync
   {{uv}} run ruff check --force-exclude --extend-select I --fix {{target}}
   {{uv}} run ruff format --force-exclude {{target}}
 
-# check-all: check-python
+check-all: check-python
 
-# fix-all: fix-python
+fix-all: fix-python
 
 
 ################################################################################
