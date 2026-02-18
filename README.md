@@ -29,7 +29,7 @@ defined in your `.env` file in the `Authorization` header.
 
   Ex. with httpie:
   ```sh
-  http POST <HOSTNAME>/check/<git_commit_hash>/ Authorization: "Bearer <AUTH_KEY>"
+  http POST <HOSTNAME>/check/<git_commit_hash>/ "Authorization: Bearer <AUTH_KEY>"
   ```
 
   Ex. with cURL:
